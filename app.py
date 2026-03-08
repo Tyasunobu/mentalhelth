@@ -1,7 +1,8 @@
 import streamlit as st
+import random
 
 # 問題データの定義（先ほど作成した問題を追加していきます）
-questions = [
+all_questions = [
     # 第1章：メンタルヘルスケアの意義と管理監督者の役割
     {
         "question": "「労働安全衛生調査」における労働者のストレスの現状に関する記述のうち、最も適切なものはどれか。",
@@ -594,8 +595,18 @@ st.set_page_config(page_title="メンタルヘルス検定2種 対策アプリ",
 st.title("🧠 メンタルヘルスマネジメント検定2種\nラインケアコース 想定問題集")
 st.write("全50問のオリジナル問題集です。選択肢を選んで「解答と解説を見る」を押してください。")
 
+# 問題数が50問に満たない場合は、ある分だけを出題する
+sample_size = min(50, len(all_questions))
+
+# セッションステートを使って、リロード時のみ問題をランダム抽出する
+# （これがないと、選択肢をクリックするたびに問題が変わってしまいます）
+if "selected_questions" not in st.session_state:
+    st.session_state.selected_questions = random.sample(all_questions, sample_size)
+
+st.write(f"全{len(all_questions)}問のプールから、ランダムに{sample_size}問を出題しています。")
+
 # 問題をループして表示
-for i, q in enumerate(questions):
+for i, q in enumerate(st.session_state.selected_questions):
     st.markdown(f"### 第{i+1}問")
     st.write(q["question"])
     
@@ -614,5 +625,10 @@ for i, q in enumerate(questions):
         st.info(f"**【解説】**\n{q['rationale']}")
     
     st.divider()
+
+# 新しい問題をやり直すボタン（セッションをクリアして再読み込み）
+if st.button("🔄 別のランダム50問に挑戦する"):
+    del st.session_state["selected_questions"]
+    st.rerun()
 
 st.caption("作成：あなたの名前")
