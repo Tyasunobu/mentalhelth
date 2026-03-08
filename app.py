@@ -71,7 +71,9 @@ if "is_submitted" not in st.session_state:
 if not st.session_state.is_submitted:
     st.title("📒✎ メンタルヘルスマネジメント検定2種\nラインケアコース 想定問題集")
     st.write("全問解答した後、一番下の「回答を送信」ボタンを押してください。")
-    st.write(f"（全{len(st.session_state.selected_questions)}問 / 100点満点）")
+    
+    total_q = len(st.session_state.selected_questions)
+    st.write(f"（全{total_q}問 / 1問1点の{total_q}点満点）")
     st.divider()
 
     # 問題表示ループ
@@ -96,9 +98,6 @@ else:
     
     correct_count = 0
     total_q = len(st.session_state.selected_questions)
-    
-    # 1問あたりの配点を計算（50問なら1問2点）
-    point_per_q = 100 / total_q if total_q > 0 else 0
 
     # まず結果のリストを表示するためのコンテナ（枠）を作成
     results_container = st.container()
@@ -124,7 +123,7 @@ else:
             # 結果の表示
             st.markdown(f"**問{i+1}： <span style='color:{color}; font-size:1.2em;'>{mark}</span>**", unsafe_allow_html=True)
             
-            # 未解答への対応
+            # 未解答や間違えた場合のみ、ユーザーの解答を表示
             if user_answer is None:
                 st.write(f"あなたの解答： *(未解答)*")
             elif not is_correct:
@@ -134,17 +133,18 @@ else:
             st.info(f"**解説：**\n{q['rationale']}")
             st.divider()
 
-    # 総合得点の計算と上部への表示（Streamlitの仕様上、計算後に表示要素を上に配置したい場合はプレースホルダー等を使いますが、今回はシンプルに一番下に大きく表示します）
-    total_score = int(correct_count * point_per_q)
+    # 総合得点の計算（1問1点）
+    total_score = correct_count
+    passing_score = int(total_q * 0.7) # 7割が合格ライン（50問なら35点）
     
     st.markdown("---")
-    st.markdown(f"<h2 style='text-align: center;'>正解 {total_score} 点 / 100点</h2>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='text-align: center;'>正解 {total_score} 点 / {total_q}点満点</h2>", unsafe_allow_html=True)
     
-    # 合格基準（70点以上）の判定メッセージ
-    if total_score >= 70:
-        st.success("🎉 合格基準（70点）をクリアしました！素晴らしいです！")
+    # 合格基準の判定メッセージ
+    if total_score >= passing_score:
+        st.success(f"🎉 合格基準（{passing_score}点以上）をクリアしました！素晴らしいです！")
     else:
-        st.warning("💪 合格基準（70点）まであと少し！解説を読んで復習しましょう。")
+        st.warning(f"💪 合格基準（{passing_score}点以上）まであと少し！解説を読んで復習しましょう。")
 
     st.markdown("---")
 
