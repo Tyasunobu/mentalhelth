@@ -50,7 +50,7 @@ if st.button("📝 回答を送信して総合点を見る", type="primary"):
 # ボタンが押されたら結果を表示する
 if st.session_state.get("show_score", False):
     st.markdown("---")
-    st.markdown(f"{correct_count*2} 点")
+    st.markdown(f"<h2 style='text-align: center;'>あなたの点数は{correct_count*2} 点")
     st.markdown(f"<h2 style='text-align: center;'>あなたの正解数は {correct_count} 問 / {sample_size}問中 です！</h2>", unsafe_allow_html=True)
     
     # 7割（35問）を合格ラインとしてメッセージを切り替え
