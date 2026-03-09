@@ -1,53 +1,3 @@
-# # app.py
-# import streamlit as st
-# import random
-
-# # 作成した別ファイル（questions.py）から all_questions を読み込む
-# from questions import all_questions
-
-# # ---- Streamlit アプリ UI ----
-# st.set_page_config(page_title="メンタルヘルス検定2種 対策アプリ", layout="centered")
-
-# st.title("📒✎ メンタルヘルスマネジメント検定2種\nラインケアコース 想定問題集（難易度調整版）")
-# st.write("全50問のオリジナル問題集です。ひっかけ問題や詳細な知識を問う問題を含んでいます。選択肢を選んで「解答と解説を見る」を押してください。")
-
-# # 問題数が50問に満たない場合は、ある分だけを出題する
-# sample_size = min(50, len(all_questions))
-
-# # セッションステートを使って、リロード時のみ問題をランダム抽出する
-# if "selected_questions" not in st.session_state:
-#     st.session_state.selected_questions = random.sample(all_questions, sample_size)
-
-# st.write(f"全{len(all_questions)}問のプールから、ランダムに{sample_size}問を出題しています。")
-
-# # 問題をループして表示
-# for i, q in enumerate(st.session_state.selected_questions):
-#     st.markdown(f"### 第{i+1}問")
-#     st.write(q["question"])
-    
-#     # 選択肢のラジオボタン（解答を選択）
-#     user_choice = st.radio("選択してください:", q["options"], key=f"q_{i}", index=None)
-    
-#     # 解答と解説をアコーディオン（開閉式）で表示
-#     with st.expander("解答と解説を見る"):
-#         if user_choice:
-#             if user_choice == q["answer"]:
-#                 st.success("⭕ 正解！")
-#             else:
-#                 st.error("❌ 不正解...")
-        
-#         st.markdown(f"**【正解】**\n{q['answer']}")
-#         st.info(f"**【解説】**\n{q['rationale']}")
-    
-#     st.divider()
-
-# # 新しい問題をやり直すボタン
-# if st.button("🔄 問題をシャッフルして再挑戦する"):
-#     del st.session_state["selected_questions"]
-#     st.rerun()
-
-# st.caption("作成：Mental Health Management Consultant AI")
-
 import streamlit as st
 import random
 from questions import all_questions
@@ -105,9 +55,10 @@ else:
     with results_container:
         st.markdown("### 解答と解説")
         for i, q in enumerate(st.session_state.selected_questions):
-            # ユーザーの解答を取得（未解答の場合は None）
+            # ユーザーの解答と正解、すべての選択肢を取得
             user_answer = st.session_state.get(f"q_{i}")
             correct_answer = q["answer"]
+            all_options = q["options"]
             
             # 正誤判定
             if user_answer == correct_answer:
@@ -120,22 +71,32 @@ else:
                 mark = "×"
                 color = "red"
             
-            # 結果の表示
+            # 結果の表示（〇×）
             st.markdown(f"**問{i+1}： <span style='color:{color}; font-size:1.2em;'>{mark}</span>**", unsafe_allow_html=True)
             
-            # 未解答や間違えた場合のみ、ユーザーの解答を表示
+            # あなたの解答の表示（正解した場合は重複を避けるため「正解」のみ表示するか、あえて両方表示するか。今回は間違えた場合と未解答の場合のみ表示します）
             if user_answer is None:
-                st.write(f"あなたの解答： *(未解答)*")
+                st.write("**あなたの解答：** *(未解答)*")
             elif not is_correct:
-                st.write(f"あなたの解答： {user_answer}")
+                st.write(f"**あなたの解答：** {user_answer}")
                 
+            # 正解の表示
             st.write(f"**正解：** {correct_answer}")
+            
+            # その他の選択肢を抽出して表示（正解と、自分が選んだ解答「以外」の選択肢）
+            other_options = [opt for opt in all_options if opt != correct_answer and opt != user_answer]
+            if other_options:
+                st.write("**その他の選択肢：**")
+                for opt in other_options:
+                    st.write(f"・{opt}")
+            
+            # 解説の表示
             st.info(f"**解説：**\n{q['rationale']}")
             st.divider()
 
     # 総合得点の計算（1問1点）
     total_score = correct_count
-    passing_score = int(total_q * 0.7) # 7割が合格ライン（50問なら35点）
+    passing_score = int(total_q * 0.7) # 7割が合格ライン
     
     st.markdown("---")
     st.markdown(f"<h2 style='text-align: center;'>正解 {total_score} 点 / {total_q}点満点</h2>", unsafe_allow_html=True)
