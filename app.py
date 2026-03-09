@@ -116,4 +116,5 @@ else:
             del st.session_state[key]
         st.rerun()
 
-st.caption("作成：Mental Health Management Consultant AI")
+st.caption("作成：FEEL WELL Consultant AI")
+st.caption("参考図書：メンタルヘルス・マネジメント検定試験Ⅱ種ラインケアコース過去問題集2025年度版")
