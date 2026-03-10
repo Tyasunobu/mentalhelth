@@ -12,6 +12,7 @@ if "selected_questions" not in st.session_state:
     st.session_state.selected_questions = random.sample(all_questions, sample_size)
     st.session_state.show_score = False  # 総合点表示フラグ
     st.session_state.current_q_index = 0 # 現在の問題番号（0スタート）
+    st.session_state.user_answers = {}   # ★追加：ユーザーの回答を保存する辞書
 
 # ==========================================
 # 📊 結果表示画面（採点モード）
@@ -22,8 +23,8 @@ if st.session_state.show_score:
     # 全問をループして正解数をカウント
     correct_count = 0
     for i, q in enumerate(st.session_state.selected_questions):
-        # ユーザーの解答をセッションから取得（未解答は None になる）
-        user_choice = st.session_state.get(f"q_{i}")
+        # セッションに保存された回答を取得
+        user_choice = st.session_state.user_answers.get(i)
         if user_choice == q["answer"]:
             correct_count += 1
 
@@ -47,8 +48,9 @@ if st.session_state.show_score:
         del st.session_state["selected_questions"]
         del st.session_state["show_score"]
         del st.session_state["current_q_index"]
+        del st.session_state["user_answers"] # ★追加：回答記録もリセット
         
-        # ラジオボタンの選択履歴（q_0, q_1...）もクリアして白紙に戻す
+        # ラジオボタンのキャッシュもクリア
         for key in list(st.session_state.keys()):
             if key.startswith("q_"):
                 del st.session_state[key]
@@ -76,12 +78,23 @@ else:
     # 問題文の表示
     st.markdown(f"### {q['question']}")
     
+    # ★追加：以前の回答があればインデックスを取得して初期値にする
+    saved_answer = st.session_state.user_answers.get(q_idx)
+    if saved_answer in q["options"]:
+        selected_index = q["options"].index(saved_answer)
+    else:
+        selected_index = None
+
     # 選択肢のラジオボタン
-    # keyに f"q_{q_idx}" を指定することで、解答が自動的に裏側に保存されます。前後の問題に移動しても選択状態が維持されます。
-    user_choice = st.radio("選択してください:", q["options"], key=f"q_{q_idx}", index=None)
+    user_choice = st.radio("選択してください:", q["options"], key=f"q_{q_idx}", index=selected_index)
     
-    # 解答と解説のアコーディオン
-    with st.expander("解答と解説を見る"):
+    # ★追加：選んだ回答を辞書に常に保存する
+    if user_choice is not None:
+        st.session_state.user_answers[q_idx] = user_choice
+    
+    # ★修正：エキスパンダーのタイトルに問題番号を含める
+    # これによりStreamlitが「別のエキスパンダー」と認識し、前後の問題に移動した際に必ず閉じた状態に戻る
+    with st.expander(f"第 {q_idx + 1} 問の解答と解説を見る", expanded=False):
         if user_choice:
             if user_choice == q["answer"]:
                 st.success("⭕ 正解！")
@@ -111,7 +124,6 @@ else:
     st.write("") # 少し余白
 
     # --- 中断 / 完了ボタン ---
-    # 最終問題かそうでないかでボタンの文言と色を変える
     if q_idx < sample_size - 1:
         if st.button("📝 回答を中断して結果を見る", use_container_width=True):
             st.session_state.show_score = True
