@@ -67,7 +67,7 @@ else:
     q_idx = st.session_state.current_q_index
     q = st.session_state.selected_questions[q_idx]
 
-    st.title("📒✎ メンタルヘルスマネジメント検定2種\nラインケアコース 想定問題集")
+    st.subheader("📒✎ メンタルヘルスマネジメント検定2種\nラインケアコース 想定問題集")
     st.write(f"全{len(all_questions)}問のプールから、ランダムに{sample_size}問を出題しています。")
     
     # 進行度をプログレスバーで表示
@@ -76,7 +76,7 @@ else:
     st.write(f"**第 {q_idx + 1} 問 / 全 {sample_size} 問**")
     
     # 問題文の表示
-    st.markdown(f"### {q['question']}")
+    st.markdown(f"###### {q['question']}")
     
     # ★追加：以前の回答があればインデックスを取得して初期値にする
     saved_answer = st.session_state.user_answers.get(q_idx)
